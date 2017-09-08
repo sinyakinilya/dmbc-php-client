@@ -5,10 +5,11 @@
  * @author   Ilya Sinyakin <sinyakin.ilya@gmail.com>
  */
 
+use SunTechSoft\Blockchain\CreateWalletMessage;
 use SunTechSoft\Blockchain\AddAssetMessage;
+use SunTechSoft\Blockchain\DelAssetMessage;
 use SunTechSoft\Blockchain\Client;
 use SunTechSoft\Blockchain\Helper\Cryptography;
-use SunTechSoft\Blockchain\CreateWalletMessage;
 
 include_once 'vendor/autoload.php';
 
@@ -39,3 +40,9 @@ $msg = $message->createMessage($sk);
 $response = $client->callMethod(json_encode($msg));
 print_r($response);
 
+sleep(1);
+
+$message = new DelAssetMessage($pk, 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 2);
+$msg = $message->createMessage($sk);
+$response = $client->callMethod(json_encode($msg));
+print_r($response);

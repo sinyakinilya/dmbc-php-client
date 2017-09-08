@@ -1,0 +1,24 @@
+{
+    "name": "suntechsoft/exonum-client",
+    "description": "Exonum Client",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ilya Sinyakin",
+            "email": "sinyakin.ilya@gmail.com"
+        }
+    ],
+    "require": {
+        "php":"^7.1",
+        "guzzlehttp/guzzle": "^6.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": { "SunTechSoft\\Blockchain\\" : "src" }
+    }
+
+}

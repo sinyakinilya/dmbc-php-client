@@ -66,7 +66,7 @@ class Client
      */
     private function getUrl()
     {
-        return 'http://' . $this->ip . ':' . $this->port . '/api/services/cryptocurrency/v1/wallets/transaction';
+        return 'http://' . $this->ip . ':' . $this->port . '/api/services/cryptocurrency/wallets/transaction';
     }
 
     /**

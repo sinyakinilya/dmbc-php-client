@@ -10,17 +10,13 @@ namespace SunTechSoft\Blockchain;
 abstract class AssetMessage extends AbstractMessage
 {
     private $publicKey;
-    private $assetId;
-    private $amount;
+    private $assets;
 
-    private $body = null;
-
-    public function __construct($publicKey, $assetId, $amount, $messageId)
+    public function __construct($publicKey, $assets, $messageId)
     {
         parent::__construct($messageId);
         $this->publicKey = $publicKey;
-        $this->assetId = $assetId;
-        $this->amount = $amount;
+        $this->setAssets($assets);
     }
 
     public function createMessageForSignature()
@@ -30,10 +26,10 @@ abstract class AssetMessage extends AbstractMessage
          *
          * body:
          *   pub_key    00 -> 32
-         *   asset      32 -> 40
+         *   assets     32 -> 40
          *   seed       40 -> 48
          *
-         *Asset:
+         * Asset:
          *   hash_id    00 -> 08
          *   amount     08 -> 12
          *
@@ -42,19 +38,37 @@ abstract class AssetMessage extends AbstractMessage
         $sizeBody = 48;
         $sizeAsset = 12;
         $body = $this->getBody();
+        $this->payloadLength = $startIndexForBody;
+        $assets = [];
+        $this->payloadLength = $startIndexForBody + $sizeBody + 64; // 64 - length(signature)
 
-        $lenAsset = $sizeAsset + strlen($body['asset']['hash_id']);
-        $this->payloadLength = $startIndexForBody + $sizeBody + $lenAsset + 64; // 64 - length(signature)
-
-        $sAsset = pack("VV", $sizeAsset, strlen($body['asset']['hash_id']))
-            . pack("V", $body['asset']['amount'])
-            . $body['asset']['hash_id'];
+        foreach ($body['assets'] as $i => $asset) {
+            $lenAsset = $sizeAsset + strlen($asset['hash_id']);
+            $assets[$i] = [
+                'start' => 0,
+                'size' =>  $lenAsset,
+                'bytes' => pack('VVV', $sizeAsset, strlen($asset['hash_id']), $asset['amount']).$asset['hash_id']
+            ];
+            $this->payloadLength += (8 + $lenAsset);
+        }
 
         $s = pack('ccvv', $this->networkId, $this->protocolVersion, $this->messageId, $this->serviceId)
              . pack('V', $this->payloadLength)
              . \Sodium\hex2bin($this->publicKey)
-             . pack('VVP', ($startIndexForBody + $sizeBody), $lenAsset, (int)$body['seed'])
-             . $sAsset;
+             . pack('VVP', ($startIndexForBody + $sizeBody), count($assets), (int)$body['seed'])
+        ;
+
+        foreach ($assets as $i => $asset) {
+            if ($i>0) {
+                $assets[$i]['start'] = $assets[$i-1]['start'] + $assets[$i-1]['size'];
+            } else {
+                $assets[$i]['start'] = ($startIndexForBody + $sizeBody) + 8 * count($assets);
+            }
+            $s .= pack('VV', $assets[$i]['start'], $assets[$i]['size']);
+        }
+        foreach ($assets as $asset) {
+            $s .= $asset['bytes'];
+        }
 
         return $s;
     }
@@ -64,15 +78,33 @@ abstract class AssetMessage extends AbstractMessage
         if (is_null($this->body)) {
             $this->body = [
                 'pub_key' => $this->publicKey,
-                'asset' => [
-                    'hash_id' => $this->assetId,
-                    'amount' => $this->amount,
-                ],
-                'seed' => (string)rand(1, 1000000),
+                'assets'  => $this->getAssets(),
+                'seed'    => $this->getSeed(),
             ];
         }
 
         return $this->body;
+    }
+
+    public function setAssets($assets)
+    {
+        $badAssets = [];
+        foreach ($assets as $asset) {
+            if ($asset['hash_id'] == '' || $asset['amount'] <= 0) {
+                $badAssets[] = $asset;
+            }
+        }
+
+        if (count($badAssets)) {
+            throw new \Exception('Bad Assets : ' . json_encode($badAssets));
+        } else {
+            $this->assets = $assets;
+        }
+    }
+
+    public function getAssets()
+    {
+        return $this->assets;
     }
 
 }

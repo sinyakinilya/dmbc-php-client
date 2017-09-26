@@ -9,14 +9,16 @@ namespace SunTechSoft\Blockchain;
 
 abstract class AbstractMessage
 {
-    public $networkId = 0;
-    public $protocolVersion = 0;
-    public $serviceId = 1;
-    public $messageId;
-    public $payloadLength;
-    public $signature = null;
+    protected $networkId = 0;
+    protected $protocolVersion = 0;
+    protected $serviceId = 1;
+    protected $messageId;
 
-    private $body;
+    protected $payloadLength;
+    protected $signature = null;
+
+    protected $body = null;
+    protected $seed = null;
 
     public function __construct($messageId, $serviceId = 1)
     {
@@ -42,6 +44,58 @@ abstract class AbstractMessage
             $this->createMessageForSignature(),
             \Sodium\hex2bin($secretKey)
         ));
+    }
+
+    /**
+     * @return int
+     */
+    public function getNetworkId()
+    {
+        return $this->networkId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getProtocolVersion()
+    {
+        return $this->protocolVersion;
+    }
+
+    /**
+     * @return int
+     */
+    public function getServiceId()
+    {
+        return $this->serviceId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMessageId()
+    {
+        return $this->messageId;
+    }
+
+    protected function setSeed(int $seed = null)
+    {
+        //todo: нужно реализовать получение колиичство транзакции для кошелько подписывающего транзакцию.
+        $this->seed = !is_int($seed) ? rand(0, 255) : $seed;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getSeed()
+    {
+        if (is_null($this->seed)) {
+            $this->setSeed();
+        }
+
+        return (string)$this->seed;
     }
 
     abstract public function createMessageForSignature();

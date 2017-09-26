@@ -9,8 +9,8 @@ namespace SunTechSoft\Blockchain;
 
 class DelAssetMessage extends AssetMessage
 {
-    public function __construct($publicKey, $assetId, $amount)
+    public function __construct($publicKey, $assets)
     {
-        parent::__construct($publicKey, $assetId, $amount, 4);
+        parent::__construct($publicKey, $assets, 4);
     }
 }

@@ -69,7 +69,6 @@ abstract class AssetMessage extends AbstractMessage
         foreach ($assets as $asset) {
             $s .= $asset['bytes'];
         }
-
         return $s;
     }
 

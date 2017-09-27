@@ -32,5 +32,3 @@ foreach ($blocks as $block) {
         break;
     }
 }
-
-

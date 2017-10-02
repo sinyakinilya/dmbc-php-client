@@ -31,11 +31,12 @@ class Client
     public function callMethod($message)
     {
         file_put_contents('wallet.json', $message . PHP_EOL, FILE_APPEND);
-        $response = $this->getResponse($message);
-        $response = json_decode($response, true);
+        $responseData = $this->getResponse($message);
+        $response = json_decode($responseData, true);
 
         if (json_last_error() > 0) {
-            throw new \Exception(json_last_error_msg());
+            print_r([json_last_error_msg(),$responseData]);
+//            throw new \Exception();
         }
 
         return $response;
@@ -66,7 +67,7 @@ class Client
      */
     private function getUrl()
     {
-        return 'http://' . $this->ip . ':' . $this->port . '/api/services/cryptocurrency/wallets/transaction';
+        return 'http://' . $this->ip . ':' . $this->port . '/api/services/cryptocurrency/v1/wallets/transaction';
     }
 
     /**

@@ -11,7 +11,7 @@ abstract class AbstractMessage
 {
     protected $networkId = 0;
     protected $protocolVersion = 0;
-    protected $serviceId = 1;
+    protected $serviceId;
     protected $messageId;
 
     protected $payloadLength;
@@ -20,7 +20,7 @@ abstract class AbstractMessage
     protected $body = null;
     protected $seed = null;
 
-    public function __construct($messageId, $serviceId = 1)
+    public function __construct($messageId, $serviceId = 2)
     {
         $this->messageId = $messageId;
         $this->serviceId = $serviceId;

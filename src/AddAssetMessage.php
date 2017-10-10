@@ -9,7 +9,7 @@ namespace SunTechSoft\Blockchain;
 
 class AddAssetMessage extends AssetMessage
 {
-    public function __construct($publicKey, $assets)
+    public function __construct($publicKey, array $assets)
     {
         parent::__construct($publicKey, $assets, 3);
     }

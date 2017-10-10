@@ -1,6 +1,6 @@
 <?php
 /**
- * example.php
+ * exchange_example.php
  *
  * @author   Ilya Sinyakin <sinyakin.ilya@gmail.com>
  */
@@ -8,11 +8,11 @@
 use SunTechSoft\Blockchain\AddAssetMessage;
 use SunTechSoft\Blockchain\CreateWalletMessage;
 use SunTechSoft\Blockchain\Client;
+use SunTechSoft\Blockchain\ExchangeMessage;
 use SunTechSoft\Blockchain\Helper\Assets;
 use SunTechSoft\Blockchain\Helper\Cryptography;
+use SunTechSoft\Blockchain\Helper\ExchangeOffer;
 use SunTechSoft\Blockchain\Helper\TradeOffer;
-use SunTechSoft\Blockchain\TradeMessage;
-use SunTechSoft\Blockchain\TransferMessage;
 
 include_once 'vendor/autoload.php';
 
@@ -27,7 +27,7 @@ $client = new Client('127.0.0.1', 8000);
  */
 
 /** CreateWallet */
-
+$pk1 = $pk2 = $sk1 = $sk2 = '';
 Cryptography::generateKeys($pk1, $sk1);
 Cryptography::generateKeys($pk2, $sk2);
 file_put_contents('wallet.json', $sk1 . PHP_EOL . $sk2 . PHP_EOL, FILE_APPEND);
@@ -45,19 +45,19 @@ echo $response['tx_hash'], PHP_EOL;
 
 sleep(1);
 
-$assets1 = (new Assets())
+$assets = (new Assets())
     ->addAsset('a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 45)
     ->addAsset('a8d5c97d-9978-4111-9947-7a95dcb31d0f', 17);
 
-$message  = new AddAssetMessage($pk1, $assets1->toArray());
+$message  = new AddAssetMessage($pk1, $assets->toArray());
 $msg      = $message->createMessage($sk1);
 $response = $client->callMethod(json_encode($msg));
 echo "AddAsset for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
-$assets2  = (new Assets())
-    ->addAsset('a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 5);
+$assets  = (new Assets())
+    ->addAsset('a8d5c97d-9978-cccc-9947-7a95dcb31d0f', 5);
 
-$message  = new AddAssetMessage($pk2, $assets2->toArray());
+$message  = new AddAssetMessage($pk2, $assets->toArray());
 $msg      = $message->createMessage($sk2);
 $response = $client->callMethod(json_encode($msg));
 echo "AddAsset for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
@@ -65,22 +65,22 @@ echo "AddAsset for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 sleep(1);
 
-$offerAssets = (new Assets)
+$senderAssets = (new Assets)
     ->addAsset('a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 5)
     ->addAsset('a8d5c97d-9978-4111-9947-7a95dcb31d0f', 7);
 
-$tradeOffer = new TradeOffer($pk1, $offerAssets, 37);
-$tradeOffer->setSignature($sk1);
+$recipientAssets = (new Assets)
+    ->addAsset('a8d5c97d-9978-cccc-9947-7a95dcb31d0f', 1);
 
-$txTrade = new TradeMessage($pk2, $tradeOffer);
-echo join(',', unpack('C*', $txTrade->createMessageForSignature())) . PHP_EOL;
+$exchangeOffer = new ExchangeOffer($pk1, $senderAssets, '37', $pk2, $recipientAssets, '0', 1);
+$exchangeOffer->setSignature($sk1);
 
+$txExchange = new ExchangeMessage($exchangeOffer);
+//echo join(',', unpack('C*', $txExchange->createMessageForSignature())) . PHP_EOL;
 
-$msg = $txTrade->createMessage($sk2);
+$msg = $txExchange->createMessage($sk2);
 $response = $client->callMethod(json_encode($msg));
-echo "Trade for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
-
-
+echo "Exchange", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 
 die();

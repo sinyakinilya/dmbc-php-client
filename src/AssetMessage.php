@@ -12,7 +12,7 @@ abstract class AssetMessage extends AbstractMessage
     private $publicKey;
     private $assets;
 
-    public function __construct($publicKey, $assets, $messageId)
+    public function __construct($publicKey, array $assets, $messageId)
     {
         parent::__construct($messageId);
         $this->publicKey = $publicKey;

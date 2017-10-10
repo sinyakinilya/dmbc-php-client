@@ -24,7 +24,7 @@ $client = new Client('127.0.0.1', 8000);
  *  4 - delAssets (assets)
  */
 
-for ($i = 0; $i<10; $i++) {
+for ($i = 0; $i<1; $i++) {
     /** CreateWallet */
 
     Cryptography::generateKeys($pk1, $sk1);
@@ -39,8 +39,8 @@ for ($i = 0; $i<10; $i++) {
     echo PHP_EOL, $response['tx_hash'], PHP_EOL;
     $message  = new CreateWalletMessage($pk2);
     $msg      = $message->createMessage($sk2);
-    $response = $client->callMethod(json_encode($msg));
-    echo $response['tx_hash'], PHP_EOL;
+//    $response = $client->callMethod(json_encode($msg));
+//    echo $response['tx_hash'], PHP_EOL;
 
     sleep(1);
 
@@ -67,18 +67,18 @@ for ($i = 0; $i<10; $i++) {
 //sleep(1);
 //
 
-    $assets2  = [
-        [
-            'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
-            'amount'  => 5,
-        ]
-    ];
-    $message  = new AddAssetMessage($pk2, $assets2);
-    $msg      = $message->createMessage($sk2);
-    $response = $client->callMethod(json_encode($msg));
-    echo "AddAsset for user2", PHP_EOL;
+//    $assets2  = [
+//        [
+//            'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
+//            'amount'  => 5,
+//        ]
+//    ];
+//    $message  = new AddAssetMessage($pk2, $assets2);
+//    $msg      = $message->createMessage($sk2);
+//    $response = $client->callMethod(json_encode($msg));
+//    echo "AddAsset for user2", PHP_EOL;
 //    print_r($msg);
-    echo $response['tx_hash'], PHP_EOL;
+//    echo $response['tx_hash'], PHP_EOL;
 
 
 sleep(1);
@@ -126,7 +126,7 @@ sleep(1);
     echo $response['tx_hash'], PHP_EOL;
 
     sleep(3);
-    $t = file_get_contents("http://127.0.0.1:8000/api/services/cryptocurrency/wallet/$pk2");
+    $t = file_get_contents("http://127.0.0.1:8000/api/services/cryptocurrency/v1/wallet/$pk2");
 //    echo $t, PHP_EOL;
     $balance = json_decode($t, true);
 

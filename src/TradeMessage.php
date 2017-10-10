@@ -7,12 +7,12 @@
 
 namespace SunTechSoft\Blockchain;
 
-use SunTechSoft\Blockchain\Helper\Offer;
+use SunTechSoft\Blockchain\Helper\TradeOffer;
 
 class TradeMessage extends AbstractMessage
 {
     /**
-     * @var Offer
+     * @var TradeOffer
      */
     private $offer;
     /**
@@ -20,7 +20,7 @@ class TradeMessage extends AbstractMessage
      */
     private $buyerPublicKey;
 
-    public function __construct(string $buyerPublicKey, Offer $offer)
+    public function __construct(string $buyerPublicKey, TradeOffer $offer)
     {
         parent::__construct(5);
         $this->setBuyerPublicKey($buyerPublicKey)
@@ -36,14 +36,15 @@ class TradeMessage extends AbstractMessage
          * Exonum structure for Transfer's message
          *
          * body:
-         *   buyer:      &PublicKey  [00 => 32]
-         *   offer:      Offer       [32 => 40]
-         *   seed:       u64         [40 => 48]
-         **
+         *   buyer:              &PublicKey    [00 => 32]
+         *   offer:              Offer         [32 => 40]
+         *   seed:               u64           [40 => 48]
+         *   seller_signature:   &Signature    [48 => 112]
+         *
          */
         $startIndexForBody = 10; // length(networkId + protocolVersion + messageId + serviceId + payloadLength)
-        $sizeBody = 48;
-        $hashOffer = $this->offer->toHash(0, true);
+        $sizeBody = 112;
+        $hashOffer = $this->offer->toHash(0);
 
         $this->payloadLength = $startIndexForBody + $sizeBody + strlen($hashOffer) + 64; // 64 - length(signature)
 
@@ -52,6 +53,7 @@ class TradeMessage extends AbstractMessage
              . \Sodium\hex2bin($this->getBuyerPublicKey())
              . pack('VV', $startIndexForBody + $sizeBody, strlen($hashOffer))
              . pack('P', (int)$this->getSeed())
+             . \Sodium\hex2bin($this->getBody()['seller_signature'])
              . $hashOffer
         ;
 
@@ -62,10 +64,11 @@ class TradeMessage extends AbstractMessage
     {
         if (is_null($this->body)) {
             $this->body = [
-                    'buyer'  => $this->getBuyerPublicKey(),
-                    'offer' => $this->getOffer()->toArray(),
-                    'seed'   => $this->getSeed(),
-                ];
+                'buyer'            => $this->getBuyerPublicKey(),
+                'offer'            => $this->getOffer()->toArray(),
+                'seed'             => $this->getSeed(),
+                'seller_signature' => $this->getOffer()->getSignature(),
+            ];
         }
 
         return $this->body;
@@ -97,11 +100,11 @@ class TradeMessage extends AbstractMessage
     }
 
     /**
-     * @param Offer $offer
+     * @param TradeOffer $offer
      *
      * @return TradeMessage
      */
-    public function setOffer(Offer $offer): TradeMessage
+    public function setOffer(TradeOffer $offer): TradeMessage
     {
         $this->offer = $offer;
 
@@ -109,9 +112,9 @@ class TradeMessage extends AbstractMessage
     }
 
     /**
-     * @return Offer
+     * @return TradeOffer
      */
-    public function getOffer(): Offer
+    public function getOffer(): TradeOffer
     {
         return $this->offer;
     }

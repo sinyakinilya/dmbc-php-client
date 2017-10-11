@@ -12,7 +12,6 @@ use SunTechSoft\Blockchain\Helper\Assets;
 use SunTechSoft\Blockchain\Helper\Cryptography;
 use SunTechSoft\Blockchain\Helper\TradeOffer;
 use SunTechSoft\Blockchain\TradeMessage;
-use SunTechSoft\Blockchain\TransferMessage;
 
 include_once 'vendor/autoload.php';
 
@@ -55,7 +54,7 @@ $response = $client->callMethod(json_encode($msg));
 echo "AddAsset for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 $assets2  = (new Assets())
-    ->addAsset('a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 5);
+    ->addAsset('a8d5c97d-9978-cccc-9947-7a95dcb31d0f', 5);
 
 $message  = new AddAssetMessage($pk2, $assets2->toArray());
 $msg      = $message->createMessage($sk2);

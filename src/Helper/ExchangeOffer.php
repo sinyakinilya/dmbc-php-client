@@ -13,17 +13,17 @@ namespace SunTechSoft\Blockchain\Helper;
  * @package SunTechSoft\Blockchain\Helper
  *
  * Exonum struct ExchangeOffer:
- *   const SIZE = 105;
+ *   const SIZE = 97;
  *
  *   field sender:                 &PublicKey   [00 => 32]
  *   field sender_assets:          Vec<Asset>   [32 => 40]
  *   field sender_value:           u64          [40 => 48]
  *
  *   field recipient:              &PublicKey   [48 => 80]
- *   field recipient_assets:       Vec<Asset>   [88 => 96]
- *   field recipient_value:        u64          [96 => 104]
+ *   field recipient_assets:       Vec<Asset>   [80 => 88]
+ *   field recipient_value:        u64          [88 => 96]
  *
- *   field fee_strategy:           u8           [104 => 105]
+ *   field fee_strategy:           u8           [96 => 97]
  */
 final class ExchangeOffer implements Offer
 {

@@ -7,12 +7,8 @@
 
 namespace SunTechSoft\Blockchain;
 
-use GuzzleHttp\Client as GuzzleClient;
-
 class Client
 {
-    /** @var GuzzleClient */
-    public $httpClient;
     private $ip;
     private $port;
 
@@ -20,7 +16,6 @@ class Client
     {
         $this->ip = $ip;
         $this->port = $port;
-        $this->httpClient = new GuzzleClient();
     }
 
     /**
@@ -53,7 +48,7 @@ class Client
         curl_setopt_array($curl, [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER => $this->getHeaders(),
             CURLOPT_RETURNTRANSFER => true,
 //            CURLOPT_VERBOSE => true,
         ]);
@@ -67,7 +62,8 @@ class Client
      */
     private function getUrl()
     {
-        return 'http://' . $this->ip . ':' . $this->port . '/api/services/cryptocurrency/v1/wallets/transaction';
+//        return 'https://devdmarket.gskins.net/api/services/cryptocurrency/v1/wallets/transaction';
+        return 'http://' . $this->getIp().':'. $this->getPort().'/api/services/cryptocurrency/v1/wallets/transaction';
     }
 
     /**

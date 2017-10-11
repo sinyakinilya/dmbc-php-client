@@ -12,12 +12,11 @@ namespace SunTechSoft\Blockchain\Helper;
  * @package SunTechSoft\Blockchain\Helper
  *
  * Exonum struct Offer:
- *   size = 112
+ *   size = 48
  *
  *   seller:     &PublicKey  [00 => 32]
  *   assets:     Vec<Asset>  [32 => 40]
  *   price:      u64         [40 => 48]
- *   signature:  &Signature  [48 => 112]
  */
 final class TradeOffer implements Offer
 {

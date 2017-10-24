@@ -95,7 +95,7 @@ sleep(1);
 //sleep(1);
 //
 
-    $message  = new TransferMessage($pk1, $pk2, 0, [
+    $message  = new TransferMessage($pk1, $pk2, 3, [
         [
             'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
             'amount'  => 3,
@@ -103,6 +103,7 @@ sleep(1);
         ]
     ]);
     $msg      = $message->createMessage($sk1);
+    echo join(",", unpack("C*", $message->createMessageForSignature())), PHP_EOL;
     $response = $client->callMethod(json_encode($msg));
     echo "Send 0 coins form user1 to user2 and asset", PHP_EOL;
 //    print_r($msg);

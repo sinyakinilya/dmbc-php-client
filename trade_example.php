@@ -11,6 +11,7 @@ use SunTechSoft\Blockchain\Client;
 use SunTechSoft\Blockchain\Helper\Assets;
 use SunTechSoft\Blockchain\Helper\Cryptography;
 use SunTechSoft\Blockchain\Helper\TradeOffer;
+use SunTechSoft\Blockchain\MiningMessage;
 use SunTechSoft\Blockchain\TradeMessage;
 
 include_once 'vendor/autoload.php';
@@ -51,7 +52,8 @@ $assets1 = (new Assets())
 $message  = new AddAssetMessage($pk1, $assets1->toArray());
 $msg      = $message->createMessage($sk1);
 $response = $client->callMethod(json_encode($msg));
-echo "AddAsset for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;
+$bcUser1Assets = $response['transaction_info']['external_internal'];
+echo "AddAsset for user1", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
 
 $assets2  = (new Assets())
     ->addAsset('a8d5c97d-9978-cccc-9947-7a95dcb31d0f', 5);
@@ -59,27 +61,32 @@ $assets2  = (new Assets())
 $message  = new AddAssetMessage($pk2, $assets2->toArray());
 $msg      = $message->createMessage($sk2);
 $response = $client->callMethod(json_encode($msg));
-echo "AddAsset for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
+$bcUser2Assets = $response['transaction_info']['external_internal'];
+echo "AddAsset for user2", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
 
 
 sleep(1);
 
 $offerAssets = (new Assets)
-    ->addAsset('a8d5c97d-9978-4b0b-9947-7a95dcb31d0f', 5)
-    ->addAsset('a8d5c97d-9978-4111-9947-7a95dcb31d0f', 7);
+    ->addAsset($bcUser1Assets['a8d5c97d-9978-4b0b-9947-7a95dcb31d0f'], 5)
+    ->addAsset($bcUser1Assets['a8d5c97d-9978-4111-9947-7a95dcb31d0f'], 7);
 
 $tradeOffer = new TradeOffer($pk1, $offerAssets, 37);
 $tradeOffer->setSignature($sk1);
 
 $txTrade = new TradeMessage($pk2, $tradeOffer);
-echo join(',', unpack('C*', $txTrade->createMessageForSignature())) . PHP_EOL;
-
-
 $msg = $txTrade->createMessage($sk2);
 $response = $client->callMethod(json_encode($msg));
 echo "Trade for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 
+$pk = '36a05e418393fb4b23819753f6e6dd51550ce030d53842c43dd1349857a96a61';
+$sk = 'd6935ba259dd54b18a2a40fd1c5f8f0544ae8472db48d7726a02aab582d35a6336a05e418393fb4b23819753f6e6dd51550ce030d53842c43dd1349857a96a61';
+$txMining = new MiningMessage($pk);
+$miningMessage = $txMining->createMessage($sk);
+$response = $client->callMethod(json_encode($miningMessage));
+
+echo "Mining for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 
 die();

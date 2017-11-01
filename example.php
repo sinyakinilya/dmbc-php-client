@@ -5,11 +5,16 @@
  * @author   Ilya Sinyakin <sinyakin.ilya@gmail.com>
  */
 
-use SunTechSoft\Blockchain\CreateWalletMessage;
 use SunTechSoft\Blockchain\AddAssetMessage;
-use SunTechSoft\Blockchain\DelAssetMessage;
+use SunTechSoft\Blockchain\CreateWalletMessage;
 use SunTechSoft\Blockchain\Client;
+use SunTechSoft\Blockchain\ExchangeMessage;
+use SunTechSoft\Blockchain\Helper\Assets;
 use SunTechSoft\Blockchain\Helper\Cryptography;
+use SunTechSoft\Blockchain\Helper\ExchangeOffer;
+use SunTechSoft\Blockchain\Helper\TradeOffer;
+use SunTechSoft\Blockchain\MiningMessage;
+use SunTechSoft\Blockchain\TradeMessage;
 use SunTechSoft\Blockchain\TransferMessage;
 
 include_once 'vendor/autoload.php';
@@ -19,130 +24,101 @@ $client = new Client('127.0.0.1', 8000);
 /**
  * methods:
  *  1 - createWallet (create and setup 100 coins)
- *  2 - transfer (couin and assets)
  *  3 - addAssets (assets)
+ *  2 - transfer (couin and assets)
  *  4 - delAssets (assets)
  */
 
-for ($i = 0; $i<1; $i++) {
-    /** CreateWallet */
+/** CreateWallet */
 
-    Cryptography::generateKeys($pk1, $sk1);
-    Cryptography::generateKeys($pk2, $sk2);
-    file_put_contents('wallet.json', $sk1 . PHP_EOL . $sk2 . PHP_EOL, FILE_APPEND);
+Cryptography::generateKeys($pk1, $sk1);
+Cryptography::generateKeys($pk2, $sk2);
 
-    echo PHP_EOL, PHP_EOL, "  ---- start ---- ", PHP_EOL;
-    echo "Create Wallets for user1 and user2";
-    $message  = new CreateWalletMessage($pk1);
-    $msg      = $message->createMessage($sk1);
-    $response = $client->callMethod(json_encode($msg));
-    echo PHP_EOL, $response['tx_hash'], PHP_EOL;
-    $message  = new CreateWalletMessage($pk2);
-    $msg      = $message->createMessage($sk2);
-//    $response = $client->callMethod(json_encode($msg));
-//    echo $response['tx_hash'], PHP_EOL;
+file_put_contents('wallet.json', $sk1 . PHP_EOL . $sk2 . PHP_EOL, FILE_APPEND);
 
-    sleep(1);
+echo PHP_EOL, PHP_EOL, "  ---- start ---- ", PHP_EOL;
+echo "Create Wallets for user1 and user2";
+$message  = new CreateWalletMessage($pk1);
+$msg      = $message->createMessage($sk1);
+$response = $client->callMethod(json_encode($msg));
+echo PHP_EOL, $response['tx_hash'], PHP_EOL;
+$message  = new CreateWalletMessage($pk2);
+$msg      = $message->createMessage($sk2);
+$response = $client->callMethod(json_encode($msg));
+echo $response['tx_hash'], PHP_EOL;
 
-    $assets1 = [
-        [
-            'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
-            'amount'  => 45,
-        ],
-        [
-            'hash_id' => 'a8d5c97d-9978-4111-9947-7a95dcb31d0f',
-            'amount'  => 45,
+sleep(1);
 
-        ]
-    ];
+$assets1 = (new Assets())
+    ->addAsset('u1_asset1', 10)
+    ->addAsset('u1_asset2', 1);
 
-    $message  = new AddAssetMessage($pk1, $assets1);
-    $msg      = $message->createMessage($sk1);
-    $response = $client->callMethod(json_encode($msg));
-    echo "AddAsset for user1", PHP_EOL;
-//    print_r($msg);
-    echo $response['tx_hash'], PHP_EOL;
+$message  = new AddAssetMessage($pk1, $assets1->toArray());
+$msg      = $message->createMessage($sk1);
+$response = $client->callMethod(json_encode($msg));
+$bcUser1Assets = $response['transaction_info']['external_internal'];
+echo "AddAsset for user1", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
 
-//
-//sleep(1);
-//
 
-//    $assets2  = [
-//        [
-//            'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
-//            'amount'  => 5,
-//        ]
-//    ];
-//    $message  = new AddAssetMessage($pk2, $assets2);
-//    $msg      = $message->createMessage($sk2);
-//    $response = $client->callMethod(json_encode($msg));
-//    echo "AddAsset for user2", PHP_EOL;
-//    print_r($msg);
-//    echo $response['tx_hash'], PHP_EOL;
+$assets2  = (new Assets())
+    ->addAsset('u2_asset1', 3);
+
+$message  = new AddAssetMessage($pk2, $assets2->toArray());
+$msg      = $message->createMessage($sk2);
+$response = $client->callMethod(json_encode($msg));
+$bcUser2Assets = $response['transaction_info']['external_internal'];
+echo "AddAsset for user2", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
+
+$bcAssets = $bcUser1Assets + $bcUser2Assets;
+
+sleep(1);
+$offerAssets = (new Assets)
+    ->addAsset($bcAssets['u1_asset1'], 5)
+    ->addAsset($bcAssets['u1_asset2'], 1);
+
+$tradeOffer = new TradeOffer($pk1, $offerAssets, 20);
+$tradeOffer->setSignature($sk1);
+
+$txTrade = new TradeMessage($pk2, $tradeOffer);
+$msg = $txTrade->createMessage($sk2);
+$response = $client->callMethod(json_encode($msg));
+echo "Sell assets", PHP_EOL, $response['tx_hash'], PHP_EOL;
+
+
+sleep(1);
+$sendAssets = (new Assets)
+    ->addAsset($bcAssets['u2_asset1'], 3);
+
+$message  = new TransferMessage($pk2, $pk1, 10, $sendAssets->toArray());
+$msg      = $message->createMessage($sk2);
+$response = $client->callMethod(json_encode($msg));
+echo "Send 10 coins and 3 assets form user2 to user1", PHP_EOL;
+echo $response['tx_hash'], PHP_EOL;
+
 
 
 sleep(1);
 
+$senderAssets = (new Assets)
+    ->addAsset($bcAssets['u1_asset1'], 3)
+    ->addAsset($bcAssets['u2_asset1'], 1);
 
-    $message  = new TransferMessage($pk1, $pk2, 10, []);
-    $msg      = $message->createMessage($sk1);
-    $response = $client->callMethod(json_encode($msg));
-    echo "Send 10 coins form user1 to user2", PHP_EOL;
-//    print_r($msg);
-    echo $response['tx_hash'], PHP_EOL;
+$recipientAssets = (new Assets)
+    ->addAsset($bcAssets['u1_asset2'], 1);
 
-//
-//sleep(1);
-//
+$exchangeOffer = new ExchangeOffer($pk1, $senderAssets, '37', $pk2, $recipientAssets, '0', 1);
+$exchangeOffer->setSignature($sk1);
+$txExchange = new ExchangeMessage($exchangeOffer);
+$msg = $txExchange->createMessage($sk2);
+$response = $client->callMethod(json_encode($msg));
+echo "Exchange", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
-    $message  = new TransferMessage($pk1, $pk2, 3, [
-        [
-            'hash_id' => 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f',
-            'amount'  => 3,
 
-        ]
-    ]);
-    $msg      = $message->createMessage($sk1);
-    echo join(",", unpack("C*", $message->createMessageForSignature())), PHP_EOL;
-    $response = $client->callMethod(json_encode($msg));
-    echo "Send 0 coins form user1 to user2 and asset", PHP_EOL;
-//    print_r($msg);
-    echo $response['tx_hash'], PHP_EOL;
 
-//
-//sleep(1);
-//
+sleep(1);
 
-    $message  = new TransferMessage($pk1, $pk2, 0, [
-        [
-            'hash_id' => 'a8d5c97d-9978-4111-9947-7a95dcb31d0f',
-            'amount'  => 30,
+$txMining = new MiningMessage($pk1);
+$miningMessage = $txMining->createMessage($sk1);
+$response = $client->callMethod(json_encode($miningMessage));
 
-        ]
-    ]);
-    $msg      = $message->createMessage($sk1);
-    $response = $client->callMethod(json_encode($msg));
-    echo "Send 0 coins form user1 to user2 and asset", PHP_EOL;
-//    print_r($msg);
-    echo $response['tx_hash'], PHP_EOL;
-
-    sleep(3);
-    $t = file_get_contents("http://127.0.0.1:8000/api/services/cryptocurrency/v1/wallet/$pk2");
-//    echo $t, PHP_EOL;
-    $balance = json_decode($t, true);
-
-    assert($balance['balance'] == 109);
-    $have = false;
-    foreach ($balance['assets'] as $asset) {
-        if ((($asset['hash_id'] == 'a8d5c97d-9978-4111-9947-7a95dcb31d0f') && ($asset['amount'] == 30)) ||
-            (($asset['hash_id'] == 'a8d5c97d-9978-4b0b-9947-7a95dcb31d0f') && ($asset['amount'] == 8))
-        ) {
-            echo "COOL", PHP_EOL;
-            $have = true;
-        }
-    }
-    if (!$have) {
-        echo "BAD", PHP_EOL;
-    }
-
-}
+echo "Mining for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;

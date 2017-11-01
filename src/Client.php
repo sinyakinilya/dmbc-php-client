@@ -27,6 +27,7 @@ class Client
     {
         file_put_contents('wallet.json', $message . PHP_EOL, FILE_APPEND);
         $responseData = $this->getResponse($message);
+        file_put_contents('answer.json', $responseData . PHP_EOL, FILE_APPEND);
         $response = json_decode($responseData, true);
 
         if (json_last_error() > 0) {
@@ -62,7 +63,6 @@ class Client
      */
     private function getUrl()
     {
-//        return 'https://devdmarket.gskins.net/api/services/cryptocurrency/v1/wallets/transaction';
         return 'http://' . $this->getIp().':'. $this->getPort().'/api/services/cryptocurrency/v1/wallets/transaction';
     }
 

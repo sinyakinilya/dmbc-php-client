@@ -11,11 +11,13 @@ class Client
 {
     private $ip;
     private $port;
+    private $ssl;
 
-    public function __construct($ip, $port = 8545)
+    public function __construct($ip, $port = 8545, $useSSl = false)
     {
         $this->ip = $ip;
         $this->port = $port;
+        $this->ssl = $useSSl;
     }
 
     /**
@@ -25,14 +27,12 @@ class Client
      */
     public function callMethod($message)
     {
-        file_put_contents('wallet.json', $message . PHP_EOL, FILE_APPEND);
         $responseData = $this->getResponse($message);
-        file_put_contents('answer.json', $responseData . PHP_EOL, FILE_APPEND);
         $response = json_decode($responseData, true);
 
         if (json_last_error() > 0) {
             print_r([json_last_error_msg(),$responseData]);
-//            throw new \Exception();
+            throw new \Exception();
         }
 
         return $response;
@@ -63,7 +63,9 @@ class Client
      */
     private function getUrl()
     {
-        return 'http://' . $this->getIp().':'. $this->getPort().'/api/services/cryptocurrency/v1/wallets/transaction';
+//        return 'https://dmarket.com/api/services/cryptocurrency/v1/wallets/transaction';
+        return $this->getProtocol() . '://' . $this->getIp() . ':' . $this->getPort()
+               . '/api/services/cryptocurrency/v1/wallets/transaction';
     }
 
     /**
@@ -112,4 +114,8 @@ class Client
         return ['Content-Type' => 'application/json'];
     }
 
+    private function getProtocol()
+    {
+        return $this->ssl ? 'https' : 'http';
+    }
 }

@@ -11,7 +11,8 @@
     ],
     "require": {
         "php":"^7.1",
-        "ext-libsodium": "*"
+        "ext-libsodium": "*",
+        "repejota/nats": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2"

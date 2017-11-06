@@ -22,11 +22,13 @@ include_once 'vendor/autoload.php';
 $client = new Client('127.0.0.1', 8000);
 
 /**
- * methods:
- *  1 - createWallets (create and setup 100 coins)
- *  3 - addAssets (assets)
- *  2 - transfer (couin and assets)
- *  4 - delAssets (assets)
+ * Messages(transaction) for DMarket blockchain:
+ *  - createWallets (create and setup 100 coins)
+ *  - addAssets (assets)
+ *  - Trade assets
+ *  - Transfer (send coins and/or assets)
+ *  - Exchange (assets)
+ *  - Mining (coins)
  */
 
 /** Create wallet */
@@ -58,7 +60,7 @@ $message  = new AddAssetMessage($pk1, $assets1->toArray());
 $msg      = $message->createMessage($sk1);
 $response = $client->callMethod(json_encode($msg));
 $bcUser1Assets = $response['transaction_info']['external_internal'];
-echo "AddAsset for user1", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
+echo "AddAsset for user1", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 
 $assets2  = (new Assets())
@@ -68,7 +70,7 @@ $message  = new AddAssetMessage($pk2, $assets2->toArray());
 $msg      = $message->createMessage($sk2);
 $response = $client->callMethod(json_encode($msg));
 $bcUser2Assets = $response['transaction_info']['external_internal'];
-echo "AddAsset for user2", PHP_EOL, print_r($response['tx_hash']), PHP_EOL;
+echo "AddAsset for user2", PHP_EOL, $response['tx_hash'], PHP_EOL;
 
 $bcAssets = $bcUser1Assets + $bcUser2Assets;
 sleep(1);

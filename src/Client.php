@@ -13,7 +13,7 @@ class Client
     private $port;
     private $ssl;
 
-    public function __construct($ip, $port = 8545, $useSSl = false)
+    public function __construct($ip, $port = null, $useSSl = false)
     {
         $this->ip = $ip;
         $this->port = $port;
@@ -63,8 +63,8 @@ class Client
      */
     private function getUrl()
     {
-//        return 'https://dmarket.com/api/services/cryptocurrency/v1/wallets/transaction';
-        return $this->getProtocol() . '://' . $this->getIp() . ':' . $this->getPort()
+//        return 'https://devdmarket.gskins.net/api/services/cryptocurrency/v1/wallets/transaction';
+        return $this->getProtocol() . '://' . $this->getIp() . $this->getPort()
                . '/api/services/cryptocurrency/v1/wallets/transaction';
     }
 
@@ -94,7 +94,7 @@ class Client
      */
     public function getPort()
     {
-        return $this->port;
+        return is_null($this->port) ? '' : ':' . $this->port;
     }
 
     /**
